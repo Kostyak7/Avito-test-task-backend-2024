@@ -1,0 +1,46 @@
+version: '1.0'
+stages:
+  - prepare
+  - build
+
+steps:
+  main_clone:
+    title: Cloning main repository...
+    stage: prepare
+    type: git-clone
+    repo: 'codefresh-contrib/go-sample-app' 
+    revision: master
+    git: github
+
+  BuildGoApp:
+    title: Building Go application
+    stage: build
+    image: golang:1.20
+    working_directory: ./backend
+    commands:
+      - go mod download  
+      - go build -o /backend/main ./app/main  
+
+  TestGoApp:
+    title: Running Unit Tests
+    stage: test
+    image: golang:1.20
+    commands:
+      - go test ./... 
+
+  BuildDockerImage:
+    title: Building Docker Image
+    stage: build
+    type: build
+    image_name: go-sample-app  
+    working_directory: ./backend
+    tag: 'latest'
+    dockerfile: Dockerfile
+
+  PushDockerImage:
+    title: Pushing Docker Image to Registry
+    stage: push
+    type: push
+    image_name: go-sample-app 
+    tag: 'latest'
+    registry: 'your-docker-registry'
